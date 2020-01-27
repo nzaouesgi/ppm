@@ -1,2 +1,5 @@
-# ppm
-a not so simple PPM image manipulation library
+Team presentation:
+N'ZAOU Renaud
+DURAND Stanislas
+OYE Ken-Williams
+SOUISSI Mohamed
