@@ -88,7 +88,7 @@ fn new_with_file(filename: &Path) -> Image {
     let mut typeRgb = String::from("");
     for (index, line) in reader.lines().enumerate() {
         let line = line.unwrap();
-            let parsedLine:Vec<&str>= line.split(" ").collect();
+            let parsedLine:Vec<&str> = line.trim().split(" ").collect();
             if parsedLine[0].chars().next().unwrap() != '#' {
                 if parsedLine.len() == 2 {
                     finalHeight = parsedLine[0].parse::<usize>().unwrap();
@@ -101,24 +101,27 @@ fn new_with_file(filename: &Path) -> Image {
                     let mut vertf : u8 = 0;
                     for i in 0..parsedLine.len() {
                         if parsedLine[i].is_empty() == false && parsedLine[i].find(|c: char| (c < '0') || (c > '9')) == None {
-                            println!("{} {}\n", parsedLine[i], i);
+                            //println!("{} {}\n", parsedLine[i], i);
                             match index {
                                 // Match a single value
                                 0 => rougef = parsedLine[i].parse::<u8>().unwrap(),
                                 1 => bleuf = parsedLine[i].parse::<u8>().unwrap(),
                                 2 => vertf = parsedLine[i].parse::<u8>().unwrap(),
-                                _ => println!("")
+                                _ => rougef = rougef + 0
                             }
                             index = index + 1;
+                            if index == 3 {
+                                let finalPixel = Pixel {
+                                    rouge : rougef,
+                                    bleu:  bleuf,
+                                    vert: vertf
+                                };
+                    // println!("Rouge = {}\nBleu = {}\nVert = {}", finalPixel.rouge, finalPixel.bleu, finalPixel.vert);
+                                finalPixels.push(finalPixel);
+                                index = 0;
+                            }
                         }
                     }
-                    let finalPixel = Pixel {
-                        rouge : rougef,
-                        bleu:  bleuf,
-                        vert: vertf
-                    };
-                    // println!("Rouge = {}\nBleu = {}\nVert = {}", finalPixel.rouge, finalPixel.bleu, finalPixel.vert);
-                    finalPixels.push(finalPixel);
                 } else if parsedLine.len() == 1 {
                     if parsedLine[0].find(|c: char| (c < '0') || (c > '9')) == None {
                         finalmaxVal = parsedLine[0].parse::<u8>().unwrap();
@@ -159,6 +162,12 @@ impl Image {
       drop(file);
   }
 }
+
+
+
+
+
+
 
 fn main() {
     let x = unsafe { sin(10) };
