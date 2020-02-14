@@ -251,7 +251,7 @@ mod bench {
 
 
 fn main() {
-    let mut image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
-    image.greyScale();
-    image.save(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/res.txt"));
+    let mut image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/lol.ppm"));
+    image.invertColors();
+    image.save(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/res.ppm"));
 }
