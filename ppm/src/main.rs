@@ -62,7 +62,7 @@ impl Pixel {
     }
 
     fn greyScale(&mut self) {
-        let mut gris : u32 = ((self.red + self.blue + self.green) / 3) as u32;
+        let mut gris : u32 = ((self.red as u32 + self.blue as u32 + self.green as u32) / 3) as u32;
         self.red = (gris) as u8;
         self.blue = (gris) as u8;
         self.green = (gris) as u8;
@@ -170,9 +170,7 @@ impl Image {
   //    function that makes image B&W based on a filter color
   fn greyScale(&mut self) {
     for i in 0..self.pixels.len() {
-        println!("red = {}\nblue = {}\ngreen = {}", self.pixels[i].red, self.pixels[i].blue, self.pixels[i].green);
         self.pixels[i].greyScale();
-        println!("red = {}\nblue = {}\ngreen = {}", self.pixels[i].red, self.pixels[i].blue, self.pixels[i].green);
       }
   }
 }
@@ -213,9 +211,9 @@ mod bench {
 
         for i in 0..image.pixels.len() {
             // self.pixels[i].invert();
-            assert_eq!((imageAux.pixels[i].red + imageAux.pixels[i].blue + imageAux.pixels[i].green) / 3, image.pixels[i].red);
-            assert_eq!((imageAux.pixels[i].red + imageAux.pixels[i].blue + imageAux.pixels[i].green) / 3, image.pixels[i].blue);
-            assert_eq!((imageAux.pixels[i].red + imageAux.pixels[i].blue + imageAux.pixels[i].green) / 3, image.pixels[i].green);
+            assert_eq!((imageAux.pixels[i].red as u32 + imageAux.pixels[i].blue as u32 + imageAux.pixels[i].green as u32) / 3, image.pixels[i].red as u32);
+            assert_eq!((imageAux.pixels[i].red as u32 + imageAux.pixels[i].blue as u32 + imageAux.pixels[i].green as u32) / 3, image.pixels[i].blue as u32);
+            assert_eq!((imageAux.pixels[i].red as u32 + imageAux.pixels[i].blue as u32 + imageAux.pixels[i].green as u32) / 3, image.pixels[i].green as u32);
           }
     }
 
