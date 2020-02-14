@@ -1,15 +1,16 @@
+#![feature(test)]
+extern crate test;
 extern crate libc;
-use std::fs::{self, File};
+use std::fs::{File};
 use std::io::prelude::*;
-use std::io::LineWriter;
 use std::io::{BufRead, BufReader};
 use std::path::Path;
 // use libc::double;
 #[derive(Copy, Clone)]
 struct Pixel {
-    rouge :u8,
-    bleu: u8,
-    vert: u8
+    red :u8,
+    blue: u8,
+    green: u8
 }
 
 struct Image {
@@ -28,56 +29,54 @@ extern {
 impl Pixel {
     fn new(red: u8, green: u8, blue: u8) -> Pixel{
         return Pixel {
-            rouge: red,
-            vert: green,
-            bleu: blue
+            red: red,
+            green: green,
+            blue: blue
         };
     }
 
     fn red(&self) -> u8 {
-        return self.rouge;
+        return self.red;
     }
 
-    fn bleu(&self) -> u8 {
-        return self.bleu;
+    fn blue(&self) -> u8 {
+        return self.blue;
     }
 
-    fn vert(&self) -> u8 {
-        return self.vert;
+    fn green(&self) -> u8 {
+        return self.green;
     }
 
     fn display(&self) {
-        println!("Rouge = {}\nBleu = {}\nVert = {}", self.rouge, self.bleu, self.vert);
+        println!("red = {}\nblue = {}\ngreen = {}", self.red, self.blue, self.green);
     }
 
     fn invert(&mut self) {
-        self.rouge = 255 - self.rouge;
-        self.bleu = 255 - self.bleu;
-        self.vert = 255 - self.vert;
+        self.red = 255 - self.red;
+        self.blue = 255 - self.blue;
+        self.green = 255 - self.green;
     }
 
     fn eq(self, other: Pixel) -> bool {
-        return self.rouge == other.rouge && self.bleu == other.bleu && self.vert == other.vert;
+        return self.red == other.red && self.blue == other.blue && self.green == other.green;
     }
 
-    fn grayscale(&mut self) ->Pixel {
-        let gris = (self.rouge + self.bleu + self.vert) / 3;
-        return Pixel {
-            rouge: gris,
-            bleu: gris,
-            vert: gris
-        }
+    fn greyScale(&mut self) {
+        let mut gris : u32 = ((self.red + self.blue + self.green) / 3) as u32;
+        self.red = (gris) as u8;
+        self.blue = (gris) as u8;
+        self.green = (gris) as u8;
     }
 }
 
 
 impl PartialEq for Pixel {
     fn eq(&self, other: &Self) -> bool {
-        self.rouge == other.rouge && self.bleu == other.bleu && self.vert == other.vert
+        self.red == other.red && self.blue == other.blue && self.green == other.green
     }
 }
 
-
+//  Function that read in text mode a ppm image
 fn new_with_file(filename: &Path) -> Image {
     let file = File::open(filename).unwrap();
     let reader = BufReader::new(file);
@@ -96,27 +95,26 @@ fn new_with_file(filename: &Path) -> Image {
                 } else if parsedLine.len() >= 3 {
                     // println!("{} {}  {}\n", parsedLine[0], parsedLine[1], parsedLine[2]);
                     let mut index = 0;
-                    let mut rougef : u8 = 0;
-                    let mut bleuf : u8 = 0;
-                    let mut vertf : u8 = 0;
+                    let mut redf : u8 = 0;
+                    let mut bluef : u8 = 0;
+                    let mut greenf : u8 = 0;
                     for i in 0..parsedLine.len() {
                         if parsedLine[i].is_empty() == false && parsedLine[i].find(|c: char| (c < '0') || (c > '9')) == None {
                             //println!("{} {}\n", parsedLine[i], i);
                             match index {
                                 // Match a single value
-                                0 => rougef = parsedLine[i].parse::<u8>().unwrap(),
-                                1 => bleuf = parsedLine[i].parse::<u8>().unwrap(),
-                                2 => vertf = parsedLine[i].parse::<u8>().unwrap(),
-                                _ => rougef = rougef + 0
+                                0 => redf = parsedLine[i].parse::<u8>().unwrap(),
+                                1 => bluef = parsedLine[i].parse::<u8>().unwrap(),
+                                2 => greenf = parsedLine[i].parse::<u8>().unwrap(),
+                                _ => redf = redf + 0
                             }
                             index = index + 1;
                             if index == 3 {
                                 let finalPixel = Pixel {
-                                    rouge : rougef,
-                                    bleu:  bleuf,
-                                    vert: vertf
+                                    red : redf,
+                                    blue:  bluef,
+                                    green: greenf
                                 };
-                    // println!("Rouge = {}\nBleu = {}\nVert = {}", finalPixel.rouge, finalPixel.bleu, finalPixel.vert);
                                 finalPixels.push(finalPixel);
                                 index = 0;
                             }
@@ -144,6 +142,7 @@ fn new_with_file(filename: &Path) -> Image {
 
 
 impl Image {
+  //  saves Image into a file
   fn save(&self, filename: &Path) {
       let mut file = File::create(filename).unwrap();
       file.write_all(self.rgbType.as_bytes()).unwrap();
@@ -154,25 +153,107 @@ impl Image {
       file.write_all(self.maxVal.to_string().as_bytes()).unwrap();
       file.write_all(b"\n");
       for i in 0..self.pixels.len() {
-        let pixelLine = String::from(self.pixels[i].rouge.to_string()+" "+&self.pixels[i].bleu.to_string()+" "+&self.pixels[i].vert.to_string());
+        let pixelLine = String::from(self.pixels[i].red.to_string()+" "+&self.pixels[i].blue.to_string()+" "+&self.pixels[i].green.to_string());
         file.write_all(pixelLine.as_bytes()).unwrap();
         file.write_all(b"\n");
       }
       //close the file
       drop(file);
   }
+
+  //    function that inverts image colors
+  fn invertColors(&mut self) {
+    for i in 0..self.pixels.len() {
+        self.pixels[i].invert();
+      }
+  }
+  //    function that makes image B&W based on a filter color
+  fn greyScale(&mut self) {
+    for i in 0..self.pixels.len() {
+        println!("red = {}\nblue = {}\ngreen = {}", self.pixels[i].red, self.pixels[i].blue, self.pixels[i].green);
+        self.pixels[i].greyScale();
+        println!("red = {}\nblue = {}\ngreen = {}", self.pixels[i].red, self.pixels[i].blue, self.pixels[i].green);
+      }
+  }
+}
+
+
+pub fn add_two(a: i32) -> i32 {
+    a + 2
+}
+
+
+//Tests and Benchmark
+#[cfg(test)]
+mod bench {
+    use super::*;
+    use test::Bencher;
+
+    #[test]
+    fn invertColors() {
+        let mut image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
+        let imageAux = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
+
+        image.invertColors();
+
+        for i in 0..image.pixels.len() {
+            // self.pixels[i].invert();
+            assert_eq!(255 - image.pixels[i].red, imageAux.pixels[i].red);
+            assert_eq!(255 - image.pixels[i].blue, imageAux.pixels[i].blue);
+            assert_eq!(255 - image.pixels[i].green, imageAux.pixels[i].green);
+          }
+    }
+
+    #[test]
+    fn greyScale() {
+        let mut image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
+        let imageAux = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
+
+        image.greyScale();
+
+        for i in 0..image.pixels.len() {
+            // self.pixels[i].invert();
+            assert_eq!((imageAux.pixels[i].red + imageAux.pixels[i].blue + imageAux.pixels[i].green) / 3, image.pixels[i].red);
+            assert_eq!((imageAux.pixels[i].red + imageAux.pixels[i].blue + imageAux.pixels[i].green) / 3, image.pixels[i].blue);
+            assert_eq!((imageAux.pixels[i].red + imageAux.pixels[i].blue + imageAux.pixels[i].green) / 3, image.pixels[i].green);
+          }
+    }
+
+
+    #[bench]
+    fn bench_createImage_from_file(b: &mut Bencher) {
+        //  let image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
+        b.iter(|| new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt")));
+    }
+
+    #[bench]
+    fn transformingImage_into_file(b: &mut Bencher) {
+        let image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
+        //  let output = Image { heigth: image.heigth, width: image.width, pixels: image.pixels, rgbType: image.rgbType, maxVal: image.maxVal};
+        b.iter(|| image.save(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/res.txt")));
+    }
+
+
+    #[bench]
+    fn greyScaleOfAnImage(b: &mut Bencher) {
+        let mut image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
+        image.greyScale();
+        b.iter(|| image.save(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/res.txt")));
+    }
+
+    #[bench]
+    fn invertColorsOfAnImage(b: &mut Bencher) {
+        let mut image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
+        image.invertColors();
+        b.iter(|| image.save(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/res.txt")));
+    }
 }
 
 
 
 
-
-
-
 fn main() {
-    let x = unsafe { sin(10) };
-    let image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
-    let output = Image { heigth: image.heigth, width: image.width, pixels: image.pixels, rgbType: image.rgbType, maxVal: image.maxVal};
-    output.save(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/res.txt"));
-    println!("double de 100 {}", x);
+    let mut image = new_with_file(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/test.txt"));
+    image.greyScale();
+    image.save(Path::new("/home/moxa/Bureau/ESGI/Programmation système et réseau/ppm/ppm/src/res.txt"));
 }
